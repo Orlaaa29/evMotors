@@ -17,7 +17,6 @@ namespace frmSearch
         public frmSearch()
         {
             InitializeComponent();
-            this.Text = "Search";
             StyleDataGrid();
             
         }
