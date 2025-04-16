@@ -26,7 +26,8 @@ namespace frmSearch
             cmbField.Items.AddRange(new string[] { "VehicleRegNo", "Make", "EngineSize", "RegisteredDate", "RentalPerDay", "Available" });
             cmbOperator.Items.AddRange(new string[] { "=", "LIKE", ">", "<" });
             LoadData();
-            MessageBox.Show("Connected to Database");
+            MessageBox.Show("Connected to Database
+            DisplayRecords;
         }
 
         private void LoadData()
@@ -49,6 +50,24 @@ namespace frmSearch
                 }
             }
         }
+        private void DisplayRecords()
+    {
+        try
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = "SELECT * FROM VehicleRegister";
+                SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
+                DataTable dt = new DataTable();
+                adapter.Fill(dt);
+                dgvResults.DataSource = dt;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to display records: {ex.Message}", "Display Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
 
         private void StyleDataGrid()
         {
