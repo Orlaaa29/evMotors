@@ -95,10 +95,13 @@ namespace frmSearch
             {
                 vehicleRegisterBindingSource.Filter = filter;
             }
+
             catch (Exception ex)
             {
                 MessageBox.Show("Invalid filter expression.\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+
+            
         }
 
             private bool IsNumericField(string field)
@@ -111,17 +114,19 @@ namespace frmSearch
             return field == "RegistrationDate" || field == "InspectionDate"; // example date fields
         }
 
-         private bool IsBooleanField(string field)
-         {
-             return field == "Available";
-         }
+        private bool IsBooleanField(string field)
+        {
+            return field == "Available";
+        }
 
         private void SetupDataGridView()
         {
 
             dgvResults.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            dgvResults.AlternatingRowsDefaultCellStyle.BackColor = Color.LightBlue;
-            dgvResults.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+            dgvResults.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(209, 233, 248);
+            dgvResults.ColumnHeadersDefaultCellStyle.Font = new Font("Cailbri", 10);
+            dgvResults.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(236, 240, 241);
+            dgvResults.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(114, 126, 136);
             dgvResults.EnableHeadersVisualStyles = false;
         }
 
