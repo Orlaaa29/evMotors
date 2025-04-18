@@ -81,7 +81,7 @@
             this.lblForm.Name = "lblForm";
             this.lblForm.Size = new System.Drawing.Size(163, 29);
             this.lblForm.TabIndex = 9;
-            this.lblForm.Text = "Search Form";
+            this.lblForm.Text = "Search EVMotors";
             // 
             // btnClose
             // 
