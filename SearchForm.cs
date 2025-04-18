@@ -69,6 +69,23 @@ namespace frmSearch
                 }
             }
 
+            else if (IsBooleanField(field))
+            {
+                if (value.Equals("true", StringComparison.OrdinalIgnoreCase) || value.Equals("yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    filter = $"[{field}] = true";
+                }
+                else if (value.Equals("false", StringComparison.OrdinalIgnoreCase) || value.Equals("no", StringComparison.OrdinalIgnoreCase))
+                {
+                    filter = $"[{field}] = false";
+                }
+                else
+                {
+                    MessageBox.Show("Please enter Yes/No or True/False for the Available field.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+
             else
             {
                 filter = $"{field} {op} '{value.Replace("'", "''")}'";
@@ -93,6 +110,11 @@ namespace frmSearch
         {
             return field == "RegistrationDate" || field == "InspectionDate"; // example date fields
         }
+
+         private bool IsBooleanField(string field)
+         {
+             return field == "Available";
+         }
 
         private void SetupDataGridView()
         {
