@@ -1,117 +1,112 @@
-﻿using Microsoft.Data.SqlClient;
-using System;
+﻿using System;
+using System.ComponentModel;
 using System.Data;
-using System.Text;
 using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-
 
 namespace frmSearch
 {
-    public partial class frmSearch : Form
+    public partial class SearchForm : Form
     {
-        private string connectionString = "Server=LAPTOP-9HB9G5PS\\SQLEXPRESS;Database=EVMotors;Trusted_Connection=True;TrustServerCertificate=True;";
-        private DataTable dataTable = null;
-        private bool dataChanged = false;
-
-        public frmSearch()
+        public SearchForm()
         {
             InitializeComponent();
-            StyleDataGrid();
-            
+            SetupDataGridView();
         }
 
-        private void SearchForm_Load(object sender, EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
-            cmbField.Items.AddRange(new string[] { "VehicleRegNo", "Make", "EngineSize", "RegisteredDate", "RentalPerDay", "Available" });
-            cmbOperator.Items.AddRange(new string[] { "=", "LIKE", ">", "<" });
-            LoadData();
-            MessageBox.Show("Connected to Database
-            DisplayRecords;
-        }
+            // TODO: This line of code loads data into the 'eVMotorsDataSet.VehicleRegister' table. You can move, or remove it, as needed.
+            this.vehicleRegisterTableAdapter.Fill(this.eVMotorsDataSet.VehicleRegister);
+            if (cmbField.Items.Count > 0)
+                cmbField.SelectedIndex = 0;
 
-        private void LoadData()
-        {
-            if (dataChanged == true)
-            {
-                try
-                {
-                    using (SqlConnection connection = new SqlConnection(connectionString))
-                    {
-                        string query = "SELECT * FROM VehicleRegister";
-                        SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
-                        dataTable = new DataTable();
-                        adapter.Fill(dataTable);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Exception Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-        private void DisplayRecords()
-    {
-        try
-        {
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                string query = "SELECT * FROM VehicleRegister";
-                SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
-                DataTable dt = new DataTable();
-                adapter.Fill(dt);
-                dgvResults.DataSource = dt;
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Failed to display records: {ex.Message}", "Display Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-        private void StyleDataGrid()
-        {
-            dgvResults.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGray;
-            dgvResults.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
-            dgvResults.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            if (cmbOperator.Items.Count > 0)
+                cmbOperator.SelectedIndex = 0;
         }
 
         private void btnRun_Click(object sender, EventArgs e)
         {
-            try
-            {
-                string field = cmbField.Text;
-                string op = cmbOperator.Text;
-                string value = txtValue.Text;
+            string field = cmbField.SelectedItem?.ToString();
+            string op = cmbOperator.SelectedItem?.ToString();
+            string value = txtValue.Text;
 
-                if (string.IsNullOrWhiteSpace(field) || string.IsNullOrWhiteSpace(op))
+            if (string.IsNullOrWhiteSpace(field) || string.IsNullOrWhiteSpace(op) || string.IsNullOrWhiteSpace(value))
+            {
+                MessageBox.Show("Please fill all search criteria.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string filter;
+
+            // Handle LIKE operator with wildcard
+            if (op == "LIKE")
+            {
+                filter = $"{field} LIKE '%{value}%'";
+            }
+            else if (IsNumericField(field))
+            {
+                if (double.TryParse(value, out _))
+                    filter = $"[{field}] {op} {value}";
+                else
                 {
-                    MessageBox.Show("Please select a field and operator.");
+                    MessageBox.Show("Please enter a valid numeric value.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
+            }
 
-                string query = $"SELECT * FROM VehicleRegister WHERE {field} {op} @value";
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                using (SqlCommand cmd = new SqlCommand(query, connection))
+            else if (IsDateField(field))
+            {
+                if (DateTime.TryParse(value, out DateTime date))
+                    filter = $"[{field}] {op} #{date:MM/dd/yyyy}#";
+                else
                 {
-                    cmd.Parameters.AddWithValue("@value", value);
-                    SqlDataAdapter da = new SqlDataAdapter(cmd);
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-                    dgvResults.DataSource = dt;
+                    MessageBox.Show("Please enter a valid date (e.g., 01/01/2024).", "Date Format Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
                 }
+            }
+
+            else
+            {
+                filter = $"{field} {op} '{value.Replace("'", "''")}'";
+            }
+
+            try
+            {
+                vehicleRegisterBindingSource.Filter = filter;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}");
+                MessageBox.Show("Invalid filter expression.\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            LoadData();
+        }
+
+            private bool IsNumericField(string field)
+        {
+            return field == "Year" || field == "Mileage"; // example numeric fields
+        }
+
+        private bool IsDateField(string field)
+        {
+            return field == "RegistrationDate" || field == "InspectionDate"; // example date fields
+        }
+
+        private void SetupDataGridView()
+        {
+
+            dgvResults.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            dgvResults.AlternatingRowsDefaultCellStyle.BackColor = Color.LightBlue;
+            dgvResults.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+            dgvResults.EnableHeadersVisualStyles = false;
         }
 
         private void btnClose_Click(object sender, EventArgs e)
         {
             this.Close();
         }
-
     }
+    
 }
